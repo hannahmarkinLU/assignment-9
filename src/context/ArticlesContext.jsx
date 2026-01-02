@@ -1,48 +1,98 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
-// ⚠️ SECURITY ISSUE: This context is shared globally with no user authentication
-// All users see the same saved articles!
 const ArticlesContext = createContext();
 
 export function ArticlesProvider({ children }) {
-  const [savedArticles, setSavedArticles] = useState([]);
+  const { user } = useAuth();
+
+  const [userSavedArticles, setUserSavedArticles] = useState([]);
+
+  // load saved articles when user changes
+  useEffect(() => {
+    if (!user) {
+      setUserSavedArticles([]);
+      return;
+    }
+
+    // load all saved articles grouped by user
+    const allSavedArticles =
+      JSON.parse(localStorage.getItem("savedArticlesByUser")) || {};
+
+    // get only the current user's articles
+    const articlesForUser = allSavedArticles[user.username] || [];
+    setUserSavedArticles(articlesForUser);
+  }, [user]);
+
+  const persistUserArticles = (updatedArticles) => {
+    if (!user) return;
+
+    const allSavedArticles =
+      JSON.parse(localStorage.getItem("savedArticlesByUser")) || {};
+
+    allSavedArticles[user.username] = updatedArticles;
+    localStorage.setItem(
+      "savedArticlesByUser",
+      JSON.stringify(allSavedArticles)
+    );
+  };
 
   const saveArticle = (article) => {
-    setSavedArticles(prev => {
-      // Check if article is already saved
-      if (prev.find(a => a.url === article.url)) {
+    if (!user) return;
+
+    setUserSavedArticles((prev) => {
+      if (prev.some((a) => a.url === article.url)) {
         return prev;
       }
-      return [...prev, article];
+
+      const updated = [...prev, article];
+      persistUserArticles(updated);
+      return updated;
     });
   };
 
   const removeArticle = (url) => {
-    setSavedArticles(prev => prev.filter(a => a.url !== url));
+    if (!user) return;
+
+    setUserSavedArticles((prev) => {
+      const updated = prev.filter((a) => a.url !== url);
+      persistUserArticles(updated);
+      return updated;
+    });
   };
 
   const isArticleSaved = (url) => {
-    return savedArticles.some(a => a.url === url);
+    if (!user) return false;
+    return userSavedArticles.some((a) => a.url === url);
+  };
+
+  const getUserSavedArticles = () => {
+    return user ? userSavedArticles : [];
+  };
+
+  const getAllUserArticles = () => {
+    return JSON.parse(localStorage.getItem("savedArticlesByUser")) || {};
   };
 
   return (
-    <ArticlesContext.Provider 
-      value={{ 
-        savedArticles, 
-        saveArticle, 
-        removeArticle, 
-        isArticleSaved 
+    <ArticlesContext.Provider
+      value={{
+        saveArticle,
+        removeArticle,
+        isArticleSaved,
+        getUserSavedArticles,
+        getAllUserArticles,
       }}
     >
       {children}
     </ArticlesContext.Provider>
   );
-};
+}
 
 export const useArticles = () => {
   const context = useContext(ArticlesContext);
   if (!context) {
-    throw new Error('useArticles must be used within ArticlesProvider');
+    throw new Error("useArticles must be used within ArticlesProvider");
   }
   return context;
 };

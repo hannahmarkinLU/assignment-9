@@ -1,34 +1,36 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import './Login.css';
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "./Login.css";
 
 function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState('regular');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState("regular");
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // where the user tried to go before login
+  const from = location.state?.from || "/";
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
-    // Basic validation
     if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password');
+      setError("Please enter both username and password");
       return;
     }
 
-    // Mock authentication - accepts any username/password
-    // In a real app, this would validate against a backend
     try {
       login(username, password, selectedRole);
-      // Redirect to saved articles after successful login
-      navigate('/saved');
+      // redirect back to previous page
+      navigate(from, { replace: true });
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError("Login failed. Please try again.");
     }
   };
 
@@ -36,7 +38,9 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <h2>Login to NewsReader</h2>
-        <p className="login-subtitle">Access your personalized news experience</p>
+        <p className="login-subtitle">
+          Access your personalized news experience
+        </p>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -44,8 +48,8 @@ function Login() {
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
-              type="text"
               id="username"
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
@@ -55,8 +59,8 @@ function Login() {
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
-              type="password"
               id="password"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
@@ -83,11 +87,11 @@ function Login() {
         <div className="demo-accounts">
           <p className="demo-title">Demo Accounts (for testing):</p>
           <p>Any username/password combination will work</p>
-          <p>Select "Regular" or "Premium" to test different access levels</p>
+          <p>Select “Regular” or “Premium” to test access levels</p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Login;
