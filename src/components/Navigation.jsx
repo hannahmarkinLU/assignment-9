@@ -63,7 +63,9 @@ function Navigation() {
         <div className="auth-section">
           {isAuthenticated ? (
             <div className="user-info">
-              {user && <span className="username">👤 {user.username}</span>}
+              {user && (
+                <span className="username">Hello, {user.username}!</span>
+              )}
               <button onClick={logout} className="logout-button">
                 Logout
               </button>
