@@ -4,8 +4,19 @@ import { useAuth } from "../context/AuthContext";
 
 function Navigation() {
   const location = useLocation();
-  const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const auth = useAuth(); // First, get the entire auth object
   const { getUserSavedArticles } = useArticles();
+
+  // Destructure after getting auth, with a fallback
+  const { user, logout, isAuthenticated, isAdmin } = auth || {};
+
+  // Debug logging - INSIDE the component
+  console.log("Auth object:", auth);
+  console.log("User:", user);
+  console.log("Is authenticated:", isAuthenticated);
+  console.log("Is admin function:", isAdmin);
+  console.log("Is admin result:", isAdmin ? isAdmin() : "No isAdmin function");
+  console.log("User role:", user?.role);
 
   // get only the current user's saved article count
   const savedCount = getUserSavedArticles().length;
@@ -47,7 +58,7 @@ function Navigation() {
             )}
 
             {/* show admin link only for admin users */}
-            {isAdmin() && (
+            {isAuthenticated && isAdmin && isAdmin() && (
               <Link
                 to="/admin"
                 className={`nav-link ${

@@ -3,8 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import { useArticles } from "../context/ArticlesContext";
 
 function AdminPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth(); // Added 'user' here
   const { getAllUserArticles } = useArticles();
+
+  console.log(
+    "Admin page rendering, isAdmin():",
+    isAdmin ? isAdmin() : "No isAdmin function",
+  );
+  console.log("User role:", user?.role); // Now 'user' is defined
 
   // redirect non-admin users to home
   if (!isAdmin()) {

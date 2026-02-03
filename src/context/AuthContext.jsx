@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
   };
 
   const isAdmin = () => {
-    return user?.role === "admin";
+    return user?.role === "admin" || user?.role === "premium";
   };
 
   const value = {
